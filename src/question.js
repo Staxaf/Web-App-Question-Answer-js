@@ -15,6 +15,25 @@ export class Question {
             .then(addToLocalStorage)
             .then(Question.renderList)
     }
+
+    static fetch(token){
+        if(!token){
+            return Promise.resolve('<p class="error">У вас нет токена</p>')
+        }
+        return fetch(`https://question-answer-web.firebaseio.com/questions.json?auth=${token}`)
+            .then(response => response.json())
+            .then(response => {
+                if(response && response.error){
+                    return `<p class="error">${response.error}</p>`
+                }
+
+                return response ? Object.keys(response).map(key => ({
+                    ...response[key], // находит все поля 
+                    id: key
+                })) : []
+            })
+    }
+
     static renderList(){
         const questions = getQuestionsFromLocalStorage();
         // Формировуем html разметку вопросов
@@ -24,6 +43,12 @@ export class Question {
         const list = document.getElementById('list')
 
         list.innerHTML = html;
+    }
+
+    static listToHTML(questions){
+        return questions.length
+        ? `${questions.map(q => `<p>${q.text}<p>`).join('')}`
+        : `<p>Вопросов пока нет</p>`
     }
 }
 
